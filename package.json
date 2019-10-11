@@ -7,10 +7,12 @@
     "@rails/ujs": "^6.0.0-alpha",
     "@rails/webpacker": "^4.0.7",
     "stimulus": "^1.1.1",
+    "stimulus_reflex": "^2.1.2",
     "turbolinks": "^5.2.0"
   },
   "version": "0.1.0",
   "devDependencies": {
+    "tailwindcss": "^1.1.2",
     "webpack-dev-server": "^3.8.2"
   }
 }
