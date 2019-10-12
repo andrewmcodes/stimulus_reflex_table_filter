@@ -318,3 +318,23 @@ Run Standard and Annotate
 bundle exec annotate
 bundle exec standardrb --fix
 ```
+
+## Contributing
+
+### Code of Conduct
+
+Everyone interacting with StimulusReflex is expected to follow the [Code of Conduct](CODE_OF_CONDUCT.md)
+
+### Coding Standards
+
+This project uses [Standard](https://github.com/testdouble/standard) to minimize bike shedding related to code formatting.
+
+Please run `bundle exec standardrb --fix` prior submitting pull requests.
+
+### Contributing Guide
+
+[Contributing Guide](/CONTRIBUTING.md)
+
+## License
+
+[MIT](/LICENSE.md)
