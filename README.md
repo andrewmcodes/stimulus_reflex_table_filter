@@ -1,6 +1,56 @@
 # README
 
-## 1
+## StimulusReflex
+
+Make sure you checkout [StimulusReflex](https://github.com/hopsoft/stimulus_reflex) for more information on how this awesomeness was achieved.
+
+You can find documentation on the project [here](https://docs.stimulusreflex.com). If you run into trouble, reach out to me on [Twitter](https://twitter.com/andrewmcodes) and I will try to help!
+
+## Setup instructions
+
+1. Dependencies
+
+Make sure you have ruby, node, and postgres installed and running.
+
+Here is what I am using:
+
+```
+➜ rbenv -v
+rbenv 1.1.2
+
+➜ ruby -v
+ruby 2.6.4p104 (2019-08-28 revision 67798) [x86_64-darwin18]
+
+➜ nvm --version
+0.35.0
+
+➜ node -v
+v12.11.1
+
+➜ postgres --version
+postgres (PostgreSQL) 11.5
+```
+
+2. Clone the repo
+
+```
+git clone https://github.com/andrewmcodes/stimulus_reflex_table_filter
+cd stimulus_reflex_table_filter
+```
+
+3. `bundle install && yarn`
+
+4. `rails db:create db:migrate db:seed`
+
+5. `rails s`
+
+6. Go to `localhost:3000` and see the magic.
+
+7. Feel free to experiment and submit pull requests!
+
+## Steps taken:
+
+### 1
 
 ```sh
 rails new stimulus_reflex_table_filter --skip-coffee --webpack=stimulus -d postgresql
@@ -8,7 +58,7 @@ cd stimulus_reflex_table_filter
 rails db:create
 ```
 
-## 2
+### 2
 
 ```sh
 git init
@@ -18,7 +68,7 @@ git remote add origin https://github.com/andrewmcodes/stimulus_reflex_table_filt
 git push -u origin master
 ```
 
-## 3
+### 3
 
 Add stimulus_reflex, annotate, and standard to `Gemfile`
 
@@ -32,7 +82,7 @@ Add stimulus_reflex to our `package.json`
 yarn add stimulus_reflex
 ```
 
-## 4
+### 4
 
 Add Tailwind
 
@@ -44,7 +94,7 @@ yarn add tailwindcss --dev
 Setup Tailwind: [instructions](https://dev.to/andrewmcodes/use-tailwind-css-1-0-in-your-rails-app-4pm4)
 
 
-## 5
+### 5
 
 Scaffold `Restaurant`
 
@@ -59,7 +109,7 @@ Add route
 root "restaurants#index"
 ```
 
-## 6
+### 6
 
 Add seeds
 
@@ -76,7 +126,7 @@ Add seeds
 end
 ```
 
-## 7
+### 7
 
 Update `app/helpers/restaurants_helper.rb`
 
@@ -92,7 +142,7 @@ module RestaurantsHelper
 end
 ```
 
-## 8
+### 8
 
 Update `restaurants_controller.rb`
 
@@ -197,7 +247,7 @@ class RestaurantsController < ApplicationController
 end
 ```
 
-## 9
+### 9
 
 Update `app/views/restaurants/index.html.erb`
 
@@ -239,7 +289,7 @@ Update `app/views/restaurants/index.html.erb`
 <%= link_to 'New Restaurant', new_restaurant_path %>
 ```
 
-## 10
+### 10
 
 Create `app/reflexes/restaurants_reflex.rb`
 
@@ -260,7 +310,7 @@ class RestaurantsReflex < StimulusReflex::Reflex
 end
 ```
 
-## 11
+### 11
 
 Run Standard and Annotate
 
