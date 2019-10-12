@@ -19,7 +19,7 @@ Here is what I am using:
 rbenv 1.1.2
 
 ➜ ruby -v
-ruby 2.6.4p104 (2019-08-28 revision 67798) [x86_64-darwin18]
+ruby 2.6.5p114 (2019-10-01 revision 67812) [x86_64-darwin18]
 
 ➜ nvm --version
 0.35.0
@@ -318,3 +318,23 @@ Run Standard and Annotate
 bundle exec annotate
 bundle exec standardrb --fix
 ```
+
+## Contributing
+
+### Code of Conduct
+
+Everyone interacting with StimulusReflex is expected to follow the [Code of Conduct](CODE_OF_CONDUCT.md)
+
+### Coding Standards
+
+This project uses [Standard](https://github.com/testdouble/standard) to minimize bike shedding related to code formatting.
+
+Please run `bundle exec standardrb --fix` prior submitting pull requests.
+
+### Contributing Guide
+
+[Contributing Guide](/CONTRIBUTING.md)
+
+## License
+
+[MIT](/LICENSE.md)
