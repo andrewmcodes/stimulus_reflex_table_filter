@@ -7,11 +7,11 @@ class RestaurantsReflex < StimulusReflex::Reflex
   private
 
   def filter_order
-    return :normal unless session[:filter] == element.dataset[:filter]
+    return :forward unless session[:filter] == element.dataset[:filter]
     if session[:filter_order] != :reverse
       :reverse
     else
-      :normal
+      :forward
     end
   end
 end
