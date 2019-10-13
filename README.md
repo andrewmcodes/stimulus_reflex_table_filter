@@ -70,7 +70,7 @@ git push -u origin master
 
 ### 3
 
-Add stimulus_reflex, annotate, and standard to `Gemfile`
+Add stimulus_reflex, annotate, faker, and standard to `Gemfile`
 
 ```sh
 bundle
@@ -99,20 +99,40 @@ Setup Tailwind: [instructions](https://dev.to/andrewmcodes/use-tailwind-css-1-0-
 Scaffold `Restaurant` and remove all actions except :index
 
 ```sh
-rails generate scaffold Restaurant name:string stars:integer price:integer category:string
+rails generate model Restaurant name:string stars:integer price:integer category:string
+rails generate controller restaurants index
 ```
 
-Add root route and set restaurants resource to only generate routes for :index
+These commands should have generated:
+- `db/migrate/20191013003319_create_restaurants.rb`
+- `app/models/restaurant.rb`
+- `test/models/restaurant_test.rb`
+- `test/fixtures/restaurants.yml`
+- `app/controllers/restaurants_controller.rb`
+- `app/views/restaurants`
+- `app/views/restaurants/index.html.erb`
+- `test/controllers/restaurants_controller_test.rb`
+- `app/helpers/restaurants_helper.rb`
+- `app/assets/stylesheets/restaurants.scss`
+
+Lets check the generated migration and modify that slighly:
 
 ```rb
-# config/routes.rb
-resources :restaurants, only: :index
-root "restaurants#index"
+class CreateRestaurants < ActiveRecord::Migration[6.0]
+  def change
+    create_table :restaurants do |t|
+      t.string :name, null: false
+      t.integer :stars, null: false, default: 1
+      t.integer :price, null: false, default: 1
+      t.string :category, null: false
+
+      t.timestamps
+    end
+  end
+end
 ```
 
-### 6
-
-Add some exciting restaurants to check out using the wonderful Faker testing library.
+Lets also add some seeds:
 
 ```rb
 # db/seeds.rb
@@ -127,28 +147,62 @@ Add some exciting restaurants to check out using the wonderful Faker testing lib
 end
 ```
 
-### 7
+Ok now lets run `rails db:migrate db:seed` to run our migration and add some records to our database. Let's also run `bundle exec annotate` to annotate some of our files with our table info.
 
-Create formatting helpers for the restaurants resource in `app/helpers/restaurants_helper.rb`
+### 6
+
+Let's update `app/models/restaurant.rb`
 
 ```rb
-module RestaurantsHelper
-  def price_to_dollar_signs(price)
-    "$" * price
-  end
-
-  def stars_to_symbol(stars)
-    "★" * stars
-  end
+class Restaurant < ApplicationRecord
+  validates_inclusion_of :stars, in: 0..5
+  validates_inclusion_of :price, in: 1..3
 end
+```
+
+### 7
+
+Go to `config/routes.rb` and add `root "restaurants#index`.
+
+Your routes file should now look like:
+
+```rb
+Rails.application.routes.draw do
+  root "restaurants#index"
+end
+```
+
+Create `config/initializers/filters.rb` and define an array of frozen strings representing all of the criteria available for sorting.
+
+```rb
+FILTERS = %w[name stars price category].freeze
 ```
 
 ### 8
 
-Created `config/initializers/filters.rb` and define an array of frozen strings representing all of the criteria available for sorting.
+Update `app/controllers/restaurants_controller.rb` to only support the `:index` method.
 
 ```rb
-FILTERS = %w[name stars price category].freeze
+class RestaurantsController < ApplicationController
+  def index
+    session[:filter] = "name" unless filter_permitted?(session[:filter])
+    @filtered_restaurants = set_filter_ordered_restaurants
+  end
+
+  private
+
+  def set_filter_ordered_restaurants
+    if session[:filter_order] == :reverse
+      Restaurant.order(session[:filter]).reverse
+    else
+      Restaurant.order(session[:filter])
+    end
+  end
+
+  def filter_permitted?(filter)
+    FILTERS.include? filter
+  end
+end
 ```
 
 ### 9
@@ -192,16 +246,46 @@ class RestaurantsReflex < StimulusReflex::Reflex
 end
 ```
 
+Now you should be able to click on table headers and have the list filter.
+
 ### 11
 
 Setup encrypted cookies-based session management for ActionCable, as described in the [StimulusReflex documentation for Security](https://docs.stimulusreflex.com/security). This code is literally cut-and-pasted into `app/controllers/application_controller.rb` and `app/channels/application_cable/connection.rb`.
 
 ### 12
 
-Run Standard and Annotate
+Let's add something fun... we'll fire off the confetti canon every time someone activates a Reflex.
+
+`yarn add dom-confetti`
+
+Create a stimulus controller.
+
+```js
+// app/frontend/controllers/restaurants_controller.js
+import { Controller } from 'stimulus'
+import StimulusReflex from 'stimulus_reflex'
+import { confetti } from 'dom-confetti'
+
+export default class extends Controller {
+  connect () {
+    StimulusReflex.register(this)
+  }
+
+  afterReflex (anchorElement) {
+    confetti(anchorElement)
+  }
+}
+```
+
+NOTE: If you did not follow my tailwind tutorial than this file will be at `app/javascript/controllers/restaurants_controller.js` not `app/frontend/controllers/restaurants_controller.js`
+
+Now clicking on the table headers should give a fun burst of confetti!
+
+### 13
+
+Run Standard
 
 ```sh
-bundle exec annotate
 bundle exec standardrb --fix
 ```
 
