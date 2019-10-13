@@ -1,6 +1,6 @@
 module RestaurantsHelper
   def price_to_dollar_signs(price)
-    ("$" * price) + "$"
+    ("$" * price)
   end
 
   def stars_to_symbol(stars)

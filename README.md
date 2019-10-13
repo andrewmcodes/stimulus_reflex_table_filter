@@ -70,7 +70,7 @@ git push -u origin master
 
 ### 3
 
-Add stimulus_reflex, annotate, and standard to `Gemfile`
+Add stimulus_reflex, annotate, faker, and standard to `Gemfile`
 
 ```sh
 bundle
@@ -96,22 +96,43 @@ Setup Tailwind: [instructions](https://dev.to/andrewmcodes/use-tailwind-css-1-0-
 
 ### 5
 
-Scaffold `Restaurant`
+Scaffold some files
 
 ```sh
-rails generate scaffold Restaurant name:string stars:integer price:integer category:string
+rails generate model Restaurant name:string stars:integer price:integer category:string
+rails generate controller restaurants index
 ```
 
-Add route
+These commands should have generated:
+- `db/migrate/20191013003319_create_restaurants.rb`
+- `app/models/restaurant.rb`
+- `test/models/restaurant_test.rb`
+- `test/fixtures/restaurants.yml`
+- `app/controllers/restaurants_controller.rb`
+- `app/views/restaurants`
+- `app/views/restaurants/index.html.erb`
+- `test/controllers/restaurants_controller_test.rb`
+- `app/helpers/restaurants_helper.rb`
+- `app/assets/stylesheets/restaurants.scss`
+
+Lets check the generated migration and modify that slighly:
 
 ```rb
-# config/routes.rb
-root "restaurants#index"
+class CreateRestaurants < ActiveRecord::Migration[6.0]
+  def change
+    create_table :restaurants do |t|
+      t.string :name, null: false
+      t.integer :stars, null: false, default: 0
+      t.integer :price, null: false, default: 1
+      t.string :category, null: false
+
+      t.timestamps
+    end
+  end
+end
 ```
 
-### 6
-
-Add seeds
+Lets also add some seeds:
 
 ```rb
 # db/seeds.rb
@@ -120,105 +141,68 @@ Add seeds
   Restaurant.create(
     name: Faker::Restaurant.name,
     stars: [1, 2, 3, 4, 5].sample,
-    price: [0, 1, 2].sample,
+    price: [1, 2, 3].sample,
     category: Faker::Restaurant.type,
   )
 end
 ```
 
-### 7
+Ok now lets run `rails db:migrate db:seed` to run our migration and add some records to our database. Let's also run `bundle exec annotate` to annotate some of our files with our table info.
 
-Update `app/helpers/restaurants_helper.rb`
+### 6
+
+Let's update `app/models/restaurant.rb`
 
 ```rb
-module RestaurantsHelper
-  def price_to_dollar_signs(price)
-    ("$" * price) + "$"
-  end
+# == Schema Information
+#
+# Table name: restaurants
+#
+#  id         :integer          not null, primary key
+#  name       :string           not null
+#  stars      :integer          default("0"), not null
+#  price      :integer          default("1"), not null
+#  category   :string           not null
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
+#
 
-  def stars_to_symbol(stars)
-    "★" * stars
-  end
+class Restaurant < ApplicationRecord
+  validates_inclusion_of :stars, in: 0..5
+  validates_inclusion_of :price, in: 1..3
+end
+```
+
+
+### 7
+
+Go to `config/routes.rb` and add `root "restaurants#index`.
+
+Your routes file should now look like:
+
+```rb
+Rails.application.routes.draw do
+  get "restaurants/index"
+  root "restaurants#index"
 end
 ```
 
 ### 8
 
-Update `restaurants_controller.rb`
+Update `app/controllers/restaurants_controller.rb`
 
 
 ```rb
 class RestaurantsController < ApplicationController
   before_action :set_all_restaurants, only: :index
   before_action :set_filter, only: :index
-  before_action :set_restaurant, only: [:show, :edit, :update, :destroy]
   FILTERS = %w[name stars price category].freeze
-  # GET /restaurants
-  # GET /restaurants.json
+
   def index
     @filtered_restaurants = set_filter_ordered_restaurants
   end
 
-  # GET /restaurants/1
-  # GET /restaurants/1.json
-  def show
-  end
-
-  # GET /restaurants/new
-  def new
-    @restaurant = Restaurant.new
-  end
-
-  # GET /restaurants/1/edit
-  def edit
-  end
-
-  # POST /restaurants
-  # POST /restaurants.json
-  def create
-    @restaurant = Restaurant.new(restaurant_params)
-
-    respond_to do |format|
-      if @restaurant.save
-        format.html { redirect_to @restaurant, notice: "Restaurant was successfully created." }
-        format.json { render :show, status: :created, location: @restaurant }
-      else
-        format.html { render :new }
-        format.json { render json: @restaurant.errors, status: :unprocessable_entity }
-      end
-    end
-  end
-
-  # PATCH/PUT /restaurants/1
-  # PATCH/PUT /restaurants/1.json
-  def update
-    respond_to do |format|
-      if @restaurant.update(restaurant_params)
-        format.html { redirect_to @restaurant, notice: "Restaurant was successfully updated." }
-        format.json { render :show, status: :ok, location: @restaurant }
-      else
-        format.html { render :edit }
-        format.json { render json: @restaurant.errors, status: :unprocessable_entity }
-      end
-    end
-  end
-
-  # DELETE /restaurants/1
-  # DELETE /restaurants/1.json
-  def destroy
-    @restaurant.destroy
-    respond_to do |format|
-      format.html { redirect_to restaurants_url, notice: "Restaurant was successfully destroyed." }
-      format.json { head :no_content }
-    end
-  end
-
   private
-
-  # Use callbacks to share common setup or constraints between actions.
-  def set_restaurant
-    @restaurant = Restaurant.find(params[:id])
-  end
 
   def set_all_restaurants
     @restaurants = Restaurant.all
@@ -236,25 +220,37 @@ class RestaurantsController < ApplicationController
     end
   end
 
-  # Never trust parameters from the scary internet, only allow the white list through.
-  def restaurant_params
-    params.require(:restaurant).permit(:name, :stars, :price, :category)
-  end
-
   def filter_permitted?(filter)
     FILTERS.include? filter
   end
 end
+
 ```
 
 ### 9
 
+Update `app/helpers/restaurants_helper.rb`
+
+```rb
+module RestaurantsHelper
+  def price_to_dollar_signs(price)
+    "$" * price
+  end
+
+  def stars_to_symbol(stars)
+    "★" * stars
+  end
+end
+```
+
+
 Update `app/views/restaurants/index.html.erb`
 
 ```html
-<h1 class="text-4xl my-8 text-gray-800 font-bold">Restaurants</h1>
+<h1 class="mt-8 text-4xl text-gray-800 font-bold">Restaurants</h1>
+<h2 class="mb-8 text-gray-800">Currently filtering by: <%= session[:filter].capitalize %></h2>
 
-<table class="table-auto bg-white w-full">
+<table class="table-auto bg-white w-full" data-controller="restaurants">
   <thead>
     <tr class="text-left bg-gray-800 text-white">
       <th class="px-4 py-2">
@@ -283,10 +279,6 @@ Update `app/views/restaurants/index.html.erb`
     <% end %>
   </tbody>
 </table>
-
-<br>
-
-<%= link_to 'New Restaurant', new_restaurant_path %>
 ```
 
 ### 10
@@ -310,12 +302,42 @@ class RestaurantsReflex < StimulusReflex::Reflex
 end
 ```
 
+Now you should be able to click on table headers and have the list filter.
+
 ### 11
 
-Run Standard and Annotate
+Let's add something fun.
+
+`yarn add dom-confetti`
+
+Create a stimulus controller.
+
+```js
+// app/frontend/controllers/restaurants_controller.js
+import { Controller } from 'stimulus'
+import StimulusReflex from 'stimulus_reflex'
+import { confetti } from 'dom-confetti'
+
+export default class extends Controller {
+  connect () {
+    StimulusReflex.register(this)
+  }
+
+  afterReflex (anchorElement) {
+    confetti(anchorElement)
+  }
+}
+```
+
+NOTE: If you did not follow my tailwind tutorial than this file will be at `app/javascript/controllers/restaurants_controller.js` not `app/frontend/controllers/restaurants_controller.js`
+
+Now clicking on the table headers should give a fun burst of confetti!
+
+### 12
+
+Run Standard
 
 ```sh
-bundle exec annotate
 bundle exec standardrb --fix
 ```
 
