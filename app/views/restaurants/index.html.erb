@@ -7,6 +7,7 @@
       <% FILTERS.each do |filter| %>
       <th class="px-4 py-2">
         <%= link_to filter.capitalize, "#", class: filter_css(filter), data: { reflex: "click->RestaurantsReflex#filter", room: session.id, filter: filter } %>
+        <%= arrow(filter, session[:filter], session[:filter_order]) %>
       </th>
       <% end %>
     </tr>

@@ -10,4 +10,9 @@ module RestaurantsHelper
   def filter_css(filter)
     "selected" if session[:filter] == filter
   end
+
+  def arrow(current_filter, filter, direction)
+    return unless current_filter == filter
+    direction == :reverse ? "↑" : "↓"
+  end
 end
