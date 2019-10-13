@@ -1,4 +1,4 @@
 Rails.application.routes.draw do
-  resources :restaurants
+  resources :restaurants, only: :index
   root "restaurants#index"
 end

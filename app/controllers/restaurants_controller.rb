@@ -1,6 +1,4 @@
 class RestaurantsController < ApplicationController
-  FILTERS = %w[name stars price category].freeze
-
   def index
     session[:filter] = "name" unless filter_permitted?(session[:filter])
     @filtered_restaurants = set_filter_ordered_restaurants

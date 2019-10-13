@@ -1,6 +1,6 @@
 module RestaurantsHelper
   def price_to_dollar_signs(price)
-    ("$" * price) + "$"
+    "$" * price
   end
 
   def stars_to_symbol(stars)
@@ -8,6 +8,6 @@ module RestaurantsHelper
   end
 
   def filter_css(filter)
-    "selected" if session[:filter] == filter.to_s
+    "selected" if session[:filter] == filter
   end
 end

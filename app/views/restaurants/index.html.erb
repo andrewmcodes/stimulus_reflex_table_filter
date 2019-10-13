@@ -3,18 +3,11 @@
 <table class="table-auto bg-white w-full" data-controller="restaurants">
   <thead>
     <tr class="text-left bg-gray-800 text-white">
+      <% FILTERS.each do |filter| %>
       <th class="px-4 py-2">
-        <%= link_to "Name", "#", class: filter_css(:name), data: { reflex: "click->RestaurantsReflex#filter", room: session.id, filter: "name" } %>
+        <%= link_to filter.capitalize, "#", class: filter_css(filter), data: { reflex: "click->RestaurantsReflex#filter", room: session.id, filter: filter } %>
       </th>
-      <th class="px-4 py-2">
-        <%= link_to "Stars", "#", class: filter_css(:stars), data: { reflex: "click->RestaurantsReflex#filter", room: session.id, filter: "stars" } %>
-      </th>
-      <th class="px-4 py-2">
-        <%= link_to "Price", "#", class: filter_css(:price), data: { reflex: "click->RestaurantsReflex#filter", room: session.id, filter: "price" } %>
-      </th>
-      <th class="px-4 py-2">
-        <%= link_to "Category", "#", class: filter_css(:category), data: { reflex: "click->RestaurantsReflex#filter", room: session.id, filter: "category" } %>
-      </th>
+      <% end %>
     </tr>
   </thead>
 
@@ -29,7 +22,3 @@
     <% end %>
   </tbody>
 </table>
-
-<br>
-
-<%= link_to 'New Restaurant', new_restaurant_path %>

@@ -19,7 +19,7 @@ Here is what I am using:
 rbenv 1.1.2
 
 ➜ ruby -v
-ruby 2.6.5p114 (2019-10-01 revision 67812) [x86_64-darwin18]
+ruby 2.6.4p104 (2019-08-28 revision 67798) [x86_64-linux]
 
 ➜ nvm --version
 0.35.0
@@ -96,22 +96,23 @@ Setup Tailwind: [instructions](https://dev.to/andrewmcodes/use-tailwind-css-1-0-
 
 ### 5
 
-Scaffold `Restaurant`
+Scaffold `Restaurant` and remove all actions except :index
 
 ```sh
 rails generate scaffold Restaurant name:string stars:integer price:integer category:string
 ```
 
-Add route
+Add root route and set restaurants resource to only generate routes for :index
 
 ```rb
 # config/routes.rb
+resources :restaurants, only: :index
 root "restaurants#index"
 ```
 
 ### 6
 
-Add seeds
+Add some exciting restaurants to check out using the wonderful Faker testing library.
 
 ```rb
 # db/seeds.rb
@@ -120,7 +121,7 @@ Add seeds
   Restaurant.create(
     name: Faker::Restaurant.name,
     stars: [1, 2, 3, 4, 5].sample,
-    price: [0, 1, 2].sample,
+    price: [1, 2, 3].sample,
     category: Faker::Restaurant.type,
   )
 end
@@ -128,12 +129,12 @@ end
 
 ### 7
 
-Update `app/helpers/restaurants_helper.rb`
+Create formatting helpers for the restaurants resource in `app/helpers/restaurants_helper.rb`
 
 ```rb
 module RestaurantsHelper
   def price_to_dollar_signs(price)
-    ("$" * price) + "$"
+    "$" * price
   end
 
   def stars_to_symbol(stars)
@@ -144,173 +145,58 @@ end
 
 ### 8
 
-Update `restaurants_controller.rb`
-
+Created `config/initializers/filters.rb` and define an array of frozen strings representing all of the criteria available for sorting.
 
 ```rb
-class RestaurantsController < ApplicationController
-  before_action :set_all_restaurants, only: :index
-  before_action :set_filter, only: :index
-  before_action :set_restaurant, only: [:show, :edit, :update, :destroy]
-  FILTERS = %w[name stars price category].freeze
-  # GET /restaurants
-  # GET /restaurants.json
-  def index
-    @filtered_restaurants = set_filter_ordered_restaurants
-  end
-
-  # GET /restaurants/1
-  # GET /restaurants/1.json
-  def show
-  end
-
-  # GET /restaurants/new
-  def new
-    @restaurant = Restaurant.new
-  end
-
-  # GET /restaurants/1/edit
-  def edit
-  end
-
-  # POST /restaurants
-  # POST /restaurants.json
-  def create
-    @restaurant = Restaurant.new(restaurant_params)
-
-    respond_to do |format|
-      if @restaurant.save
-        format.html { redirect_to @restaurant, notice: "Restaurant was successfully created." }
-        format.json { render :show, status: :created, location: @restaurant }
-      else
-        format.html { render :new }
-        format.json { render json: @restaurant.errors, status: :unprocessable_entity }
-      end
-    end
-  end
-
-  # PATCH/PUT /restaurants/1
-  # PATCH/PUT /restaurants/1.json
-  def update
-    respond_to do |format|
-      if @restaurant.update(restaurant_params)
-        format.html { redirect_to @restaurant, notice: "Restaurant was successfully updated." }
-        format.json { render :show, status: :ok, location: @restaurant }
-      else
-        format.html { render :edit }
-        format.json { render json: @restaurant.errors, status: :unprocessable_entity }
-      end
-    end
-  end
-
-  # DELETE /restaurants/1
-  # DELETE /restaurants/1.json
-  def destroy
-    @restaurant.destroy
-    respond_to do |format|
-      format.html { redirect_to restaurants_url, notice: "Restaurant was successfully destroyed." }
-      format.json { head :no_content }
-    end
-  end
-
-  private
-
-  # Use callbacks to share common setup or constraints between actions.
-  def set_restaurant
-    @restaurant = Restaurant.find(params[:id])
-  end
-
-  def set_all_restaurants
-    @restaurants = Restaurant.all
-  end
-
-  def set_filter
-    session[:filter] = "name" unless filter_permitted?(session[:filter])
-  end
-
-  def set_filter_ordered_restaurants
-    if session[:filter_order] == :reverse
-      @restaurants.order(session[:filter]).reverse
-    else
-      @restaurants.order(session[:filter])
-    end
-  end
-
-  # Never trust parameters from the scary internet, only allow the white list through.
-  def restaurant_params
-    params.require(:restaurant).permit(:name, :stars, :price, :category)
-  end
-
-  def filter_permitted?(filter)
-    FILTERS.include? filter
-  end
-end
+FILTERS = %w[name stars price category].freeze
 ```
 
 ### 9
 
-Update `app/views/restaurants/index.html.erb`
+Update `app/views/restaurants/index.html.erb` so that table column headers are wired to the StimulusReflex action `filter`, passing in the current active filter as an attribute.
 
-```html
-<h1 class="text-4xl my-8 text-gray-800 font-bold">Restaurants</h1>
-
-<table class="table-auto bg-white w-full">
+```rb
   <thead>
     <tr class="text-left bg-gray-800 text-white">
+      <% FILTERS.each do |filter| %>
       <th class="px-4 py-2">
-        <%= link_to "Name", "#", class: filter_css(:name), data: { reflex: "click->RestaurantsReflex#filter", room: session.id, filter: "name" } %>
+        <%= link_to filter.capitalize, "#", class: filter_css(filter), data: { reflex: "click->RestaurantsReflex#filter", room: session.id, filter: filter } %>
       </th>
-      <th class="px-4 py-2">
-        <%= link_to "Stars", "#", class: filter_css(:stars), data: { reflex: "click->RestaurantsReflex#filter", room: session.id, filter: "stars" } %>
-      </th>
-      <th class="px-4 py-2">
-        <%= link_to "Price", "#", class: filter_css(:price), data: { reflex: "click->RestaurantsReflex#filter", room: session.id, filter: "price" } %>
-      </th>
-      <th class="px-4 py-2">
-        <%= link_to "Category", "#", class: filter_css(:category), data: { reflex: "click->RestaurantsReflex#filter", room: session.id, filter: "category" } %>
-      </th>
+      <% end %>
     </tr>
   </thead>
-
-  <tbody class="text-gray-900">
-    <% @filtered_restaurants.each do |restaurant| %>
-      <tr>
-        <td class="border px-4 py-2"><%= restaurant.name %></td>
-        <td class="border px-4 py-2"><%= stars_to_symbol(restaurant.stars) %></td>
-        <td class="border px-4 py-2"><%= price_to_dollar_signs(restaurant.price) %></td>
-        <td class="border px-4 py-2"><%= restaurant.category %></td>
-      </tr>
-    <% end %>
-  </tbody>
-</table>
-
-<br>
-
-<%= link_to 'New Restaurant', new_restaurant_path %>
 ```
 
 ### 10
 
-Create `app/reflexes/restaurants_reflex.rb`
+Create `filter` Reflex method.. The sorting order is `:normal` unless the user clicks again on the same column heading multiple times.
 
 ```rb
+# app/reflexes/restaurants_reflex.rb
 class RestaurantsReflex < StimulusReflex::Reflex
   def filter
-    session[:filter] = element.dataset[:filter]
     session[:filter_order] = filter_order
+    session[:filter] = element.dataset[:filter]
   end
 
   private
 
   def filter_order
-    return :reverse if session[:filter] == element.dataset[:filter] && session[:filter_order] != :reverse
-
-    :normal
+    return :normal unless session[:filter] == element.dataset[:filter]
+    if session[:filter_order] != :reverse
+      :reverse
+    else
+      :normal
+    end
   end
 end
 ```
 
 ### 11
+
+Setup encrypted cookies-based session management for ActionCable, as described in the [StimulusReflex documentation for Security](https://docs.stimulusreflex.com/security). This code is literally cut-and-pasted into `app/controllers/application_controller.rb` and `app/channels/application_cable/connection.rb`.
+
+### 12
 
 Run Standard and Annotate
 
