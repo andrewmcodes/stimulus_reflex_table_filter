@@ -18,9 +18,3 @@ one:
   stars: 1
   price: 1
   category: MyString
-
-two:
-  name: MyString
-  stars: 1
-  price: 1
-  category: MyString
