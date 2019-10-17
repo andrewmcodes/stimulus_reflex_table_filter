@@ -19,7 +19,7 @@ Here is what I am using:
 rbenv 1.1.2
 
 ➜ ruby -v
-ruby 2.6.5p114 (2019-10-01 revision 67812) [x86_64-darwin18]
+ruby 2.6.4p104 (2019-08-28 revision 67798) [x86_64-linux]
 
 ➜ nvm --version
 0.35.0
@@ -96,7 +96,7 @@ Setup Tailwind: [instructions](https://dev.to/andrewmcodes/use-tailwind-css-1-0-
 
 ### 5
 
-Scaffold some files
+Scaffold `Restaurant` and remove all actions except :index
 
 ```sh
 rails generate model Restaurant name:string stars:integer price:integer category:string
@@ -154,25 +154,11 @@ Ok now lets run `rails db:migrate db:seed` to run our migration and add some rec
 Let's update `app/models/restaurant.rb`
 
 ```rb
-# == Schema Information
-#
-# Table name: restaurants
-#
-#  id         :integer          not null, primary key
-#  name       :string           not null
-#  stars      :integer          default("0"), not null
-#  price      :integer          default("1"), not null
-#  category   :string           not null
-#  created_at :datetime         not null
-#  updated_at :datetime         not null
-#
-
 class Restaurant < ApplicationRecord
   validates_inclusion_of :stars, in: 0..5
   validates_inclusion_of :price, in: 1..3
 end
 ```
-
 
 ### 7
 
@@ -182,41 +168,34 @@ Your routes file should now look like:
 
 ```rb
 Rails.application.routes.draw do
-  get "restaurants/index"
   root "restaurants#index"
 end
 ```
 
+Create `config/initializers/filters.rb` and define an array of frozen strings representing all of the criteria available for sorting.
+
+```rb
+FILTERS = %w[name stars price category].freeze
+```
+
 ### 8
 
-Update `app/controllers/restaurants_controller.rb`
-
+Update `app/controllers/restaurants_controller.rb` to only support the `:index` method.
 
 ```rb
 class RestaurantsController < ApplicationController
-  before_action :set_all_restaurants, only: :index
-  before_action :set_filter, only: :index
-  FILTERS = %w[name stars price category].freeze
-
   def index
+    session[:filter] = "name" unless filter_permitted?(session[:filter])
     @filtered_restaurants = set_filter_ordered_restaurants
   end
 
   private
 
-  def set_all_restaurants
-    @restaurants = Restaurant.all
-  end
-
-  def set_filter
-    session[:filter] = "name" unless filter_permitted?(session[:filter])
-  end
-
   def set_filter_ordered_restaurants
     if session[:filter_order] == :reverse
-      @restaurants.order(session[:filter]).reverse
+      Restaurant.order(session[:filter]).reverse
     else
-      @restaurants.order(session[:filter])
+      Restaurant.order(session[:filter])
     end
   end
 
@@ -224,80 +203,45 @@ class RestaurantsController < ApplicationController
     FILTERS.include? filter
   end
 end
-
 ```
 
 ### 9
 
-Update `app/helpers/restaurants_helper.rb`
+Update `app/views/restaurants/index.html.erb` so that table column headers are wired to the StimulusReflex action `filter`, passing in the current active filter as an attribute.
 
 ```rb
-module RestaurantsHelper
-  def price_to_dollar_signs(price)
-    "$" * price
-  end
-
-  def stars_to_symbol(stars)
-    "★" * stars
-  end
-end
-```
-
-
-Update `app/views/restaurants/index.html.erb`
-
-```html
-<h1 class="mt-8 text-4xl text-gray-800 font-bold">Restaurants</h1>
-<h2 class="mb-8 text-gray-800">Currently filtering by: <%= session[:filter].capitalize %></h2>
-
-<table class="table-auto bg-white w-full" data-controller="restaurants">
   <thead>
     <tr class="text-left bg-gray-800 text-white">
+      <% FILTERS.each do |filter| %>
       <th class="px-4 py-2">
-        <%= link_to "Name", "#", class: filter_css(:name), data: { reflex: "click->RestaurantsReflex#filter", room: session.id, filter: "name" } %>
+        <%= link_to filter.capitalize, "#", class: filter_css(filter), data: { reflex: "click->RestaurantsReflex#filter", room: session.id, filter: filter } %>
       </th>
-      <th class="px-4 py-2">
-        <%= link_to "Stars", "#", class: filter_css(:stars), data: { reflex: "click->RestaurantsReflex#filter", room: session.id, filter: "stars" } %>
-      </th>
-      <th class="px-4 py-2">
-        <%= link_to "Price", "#", class: filter_css(:price), data: { reflex: "click->RestaurantsReflex#filter", room: session.id, filter: "price" } %>
-      </th>
-      <th class="px-4 py-2">
-        <%= link_to "Category", "#", class: filter_css(:category), data: { reflex: "click->RestaurantsReflex#filter", room: session.id, filter: "category" } %>
-      </th>
+      <% end %>
     </tr>
   </thead>
-
-  <tbody class="text-gray-900">
-    <% @filtered_restaurants.each do |restaurant| %>
-      <tr>
-        <td class="border px-4 py-2"><%= restaurant.name %></td>
-        <td class="border px-4 py-2"><%= stars_to_symbol(restaurant.stars) %></td>
-        <td class="border px-4 py-2"><%= price_to_dollar_signs(restaurant.price) %></td>
-        <td class="border px-4 py-2"><%= restaurant.category %></td>
-      </tr>
-    <% end %>
-  </tbody>
-</table>
 ```
 
 ### 10
 
-Create `app/reflexes/restaurants_reflex.rb`
+Create `filter` Reflex method.. The sorting order is `:normal` unless the user clicks again on the same column heading multiple times.
 
 ```rb
+# app/reflexes/restaurants_reflex.rb
 class RestaurantsReflex < StimulusReflex::Reflex
   def filter
-    session[:filter] = element.dataset[:filter]
     session[:filter_order] = filter_order
+    session[:filter] = element.dataset[:filter]
   end
 
   private
 
   def filter_order
-    return :reverse if session[:filter] == element.dataset[:filter] && session[:filter_order] != :reverse
-
-    :normal
+    return :normal unless session[:filter] == element.dataset[:filter]
+    if session[:filter_order] != :reverse
+      :reverse
+    else
+      :normal
+    end
   end
 end
 ```
@@ -306,7 +250,11 @@ Now you should be able to click on table headers and have the list filter.
 
 ### 11
 
-Let's add something fun.
+Setup encrypted cookies-based session management for ActionCable, as described in the [StimulusReflex documentation for Security](https://docs.stimulusreflex.com/security). This code is literally cut-and-pasted into `app/controllers/application_controller.rb` and `app/channels/application_cable/connection.rb`.
+
+### 12
+
+Let's add something fun... we'll fire off the confetti canon every time someone activates a Reflex.
 
 `yarn add dom-confetti`
 
@@ -333,7 +281,7 @@ NOTE: If you did not follow my tailwind tutorial than this file will be at `app/
 
 Now clicking on the table headers should give a fun burst of confetti!
 
-### 12
+### 13
 
 Run Standard
 

@@ -14,4 +14,6 @@
 class Restaurant < ApplicationRecord
   validates_inclusion_of :stars, in: 0..5
   validates_inclusion_of :price, in: 1..3
+
+  FILTERS = %w[name stars price category].freeze
 end
