@@ -4,7 +4,7 @@
 <table class="table-auto bg-white w-full" data-controller="restaurants">
   <thead>
     <tr class="text-left bg-gray-800 text-white">
-      <% FILTERS.each do |filter| %>
+      <% Restaurant::FILTERS.each do |filter| %>
       <th class="px-4 py-2">
         <%= link_to filter.capitalize, "#", class: filter_css(filter), data: { reflex: "click->RestaurantsReflex#filter", room: session.id, filter: filter } %>
         <%= arrow(filter, session[:filter], session[:filter_order]) %>

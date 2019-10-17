@@ -15,6 +15,6 @@ class RestaurantsController < ApplicationController
   end
 
   def filter_permitted?(filter)
-    FILTERS.include? filter
+    Restaurant::FILTERS.include? filter
   end
 end
