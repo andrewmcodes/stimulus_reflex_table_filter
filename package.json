@@ -6,11 +6,11 @@
     "@rails/webpacker": "^4.0.7",
     "dom-confetti": "^0.1.1",
     "stimulus": "^1.1.1",
-    "stimulus_reflex": "^2.1.2"
+    "stimulus_reflex": "^2.1.2",
+    "tailwindcss": "^1.1.2"
   },
   "version": "0.1.0",
   "devDependencies": {
-    "tailwindcss": "^1.1.2",
     "webpack-dev-server": "^3.8.2"
   }
 }
