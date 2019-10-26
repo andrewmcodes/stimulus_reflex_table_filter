@@ -1,13 +1,20 @@
 class RestaurantsReflex < StimulusReflex::Reflex
-  def filter
-    session[:filter_order] = filter_order
-    session[:filter] = element.dataset[:filter]
+  def sort
+    session[:sort_order] = sort_order
+    session[:sort] = element.dataset[:sort]
   end
 
-  private
+  def filter
+    session[:filter] = element[:value]
+    session[:page] = 1
+  end
 
-  def filter_order
-    return :reverse if session[:filter] == element.dataset[:filter] && session[:filter_order] != :reverse
+  def page
+    session[:page] = element.dataset[:page]
+  end
+
+  def sort_order
+    return :reverse if session[:sort] == element.dataset[:sort] && session[:sort_order] != :reverse
     :forward
   end
 end

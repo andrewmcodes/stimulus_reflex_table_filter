@@ -30,4 +30,10 @@
 # available at https://guides.rubyonrails.org/i18n.html.
 
 en:
-  hello: "Hello world"
+  views:
+    pagination:
+      next: ">"
+      previous: "<"
+      first: "<<"
+      last: ">>"
+      truncate: "..."
