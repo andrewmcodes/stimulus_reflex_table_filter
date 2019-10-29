@@ -1,0 +1,16 @@
+<%# Link showing page number
+  - available local variables
+    page:          a page object for "this" page
+    url:           url to this page
+    current_page:  a page object for the currently displayed page
+    total_pages:   total number of pages
+    per_page:      number of items to fetch per page
+    remote:        data-remote
+-%>
+<li>
+  <% if page.current? %>
+    <%= link_to page, "#", :"data-page" => page, :"data-reflex" => "click->RestaurantsReflex#page", class: "block text-black bg-white border-r border-blue px-3 py-2" %>
+  <% else %>
+    <%= link_to page, "#", :"data-page" => page, :"data-reflex" => "click->RestaurantsReflex#page", class: "block hover:text-white hover:bg-black text-blue border-r border-grey-light px-3 py-2" %>
+  <% end %>
+</li>

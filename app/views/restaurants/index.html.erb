@@ -1,20 +1,21 @@
 <h1 class="mt-8 text-4xl text-gray-800 font-bold">Restaurants</h1>
-<h2 class="mb-8 text-gray-800">Currently filtering by: <%= session[:filter].capitalize %></h2>
+
+<input type="text" data-reflex="input->RestaurantsReflex#filter" data-reflex-permanent placeholder="Search..." class="flex border border-grey-light rounded px-4 py-2 mt-4 mb-4">
 
 <table class="table-auto bg-white w-full" data-controller="restaurants">
   <thead>
     <tr class="text-left bg-gray-800 text-white">
-      <% Restaurant::FILTERS.each do |filter| %>
+      <% Restaurant::FILTERS.each do |sort| %>
       <th class="px-4 py-2">
-        <%= link_to filter.capitalize, "#", class: filter_css(filter), data: { reflex: "click->RestaurantsReflex#filter", filter: filter } %>
-        <%= arrow(filter, session[:filter], session[:filter_order]) %>
+        <%= link_to sort.capitalize, "#", class: sort_css(sort), data: { reflex: "click->RestaurantsReflex#sort", sort: sort } %>
+        <%= arrow(sort, session[:sort], session[:sort_order]) %>
       </th>
       <% end %>
     </tr>
   </thead>
 
   <tbody class="text-gray-900">
-    <% @filtered_restaurants.each do |restaurant| %>
+    <% @restaurants.each do |restaurant| %>
       <tr>
         <td class="border px-4 py-2"><%= restaurant.name %></td>
         <td class="border px-4 py-2"><%= stars_to_symbol(restaurant.stars) %></td>
@@ -24,3 +25,5 @@
     <% end %>
   </tbody>
 </table>
+
+<%= paginate @restaurants %>

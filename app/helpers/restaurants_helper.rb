@@ -7,12 +7,12 @@ module RestaurantsHelper
     "★" * stars
   end
 
-  def filter_css(filter)
-    "selected" if session[:filter] == filter
+  def sort_css(sort)
+    "selected" if session[:sort] == sort
   end
 
-  def arrow(current_filter, filter, direction)
-    return unless current_filter == filter
+  def arrow(current_sort, sort, direction)
+    return unless current_sort == sort
     direction == :reverse ? "↑" : "↓"
   end
 end
